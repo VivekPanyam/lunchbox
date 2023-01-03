@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 authors = ["Vivek Panyam <hello@vivekpanyam.com>"]
 description = "An async virtual filesystem interface."
+license = "Apache-2.0"
 repository = "https://github.com/vivekpanyam/lunchbox"
 keywords = ["filesystem", "virtual", "vfs", "async", "abstraction"]
 categories = ["filesystem", "asynchronous"]
