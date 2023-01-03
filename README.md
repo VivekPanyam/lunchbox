@@ -1,3 +1,7 @@
+[<img alt="github" src="https://img.shields.io/badge/github-vivekpanyam/lunchbox-8da0cb?style=for-the-badge&logo=github" height="20">](https://github.com/vivekpanyam/lunchbox)
+[<img alt="crates.io" src="https://img.shields.io/crates/v/lunchbox.svg?style=for-the-badge&logo=rust" height="20">](https://crates.io/crates/lunchbox)
+[<img alt="docs.rs" src="https://img.shields.io/badge/docs.rs-lunchbox-66c2a5?style=for-the-badge&logo=docs.rs" height="20">](https://docs.rs/lunchbox)
+
 An async virtual filesystem interface in Rust.
 
 Lunchbox provides a common interface that can be used to interact with any filesystem (e.g. a local FS, in-memory FS, zip filesystem, etc). This interface closely matches `tokio::fs::` so it's easy to get started with.
