@@ -22,4 +22,4 @@ path-clean = "0.1"
 
 [features]
 default = ["localfs"]
-localfs = ["tokio/fs"]
+localfs = ["tokio/fs", "tokio/io-util", "tokio/rt", "tokio/macros"]

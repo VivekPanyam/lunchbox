@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 //! Note this module requires the `localfs` feature (which is enabled by default)
 
 use async_trait::async_trait;
@@ -378,8 +377,10 @@ impl WritableFileSystem for LocalFS {
 
 #[cfg(test)]
 mod tests {
+    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+
     use crate::path::Path as LunchboxPath;
-    use crate::LocalFS;
+    use crate::{LocalFS, ReadableFileSystem, WritableFileSystem};
     use std::path::Path as StdPath;
 
     #[test]
@@ -420,5 +421,24 @@ mod tests {
             fs.from_std_path("/tmp/a/b/c").unwrap(),
             LunchboxPath::new("a/b/c")
         );
+    }
+
+    #[tokio::test]
+    async fn test_basic() {
+        let fs = LocalFS::with_base_dir("/tmp").unwrap();
+
+        // Create a test file
+        let mut file = fs.create("applesauce.txt").await.unwrap();
+
+        // Write some sample data to it
+        file.write_all(b"some text").await.unwrap();
+
+        // Re open the file
+        let mut file = fs.open("applesauce.txt").await.unwrap();
+
+        let mut buffer = String::new();
+        file.read_to_string(&mut buffer).await.unwrap();
+
+        assert_eq!(buffer, "some text");
     }
 }
