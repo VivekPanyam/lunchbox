@@ -1,0 +1,24 @@
+[package]
+name = "lunchbox"
+version = "0.1.0"
+edition = "2021"
+authors = ["Vivek Panyam <hello@vivekpanyam.com>"]
+description = "An async virtual filesystem interface."
+repository = "https://github.com/vivekpanyam/lunchbox"
+keywords = ["filesystem", "virtual", "vfs", "async", "abstraction"]
+categories = ["filesystem", "asynchronous"]
+
+[lib]
+# For now
+doctest = false
+
+[dependencies]
+tokio = { version = "1" }
+async-trait = "0.1"
+thiserror = "1.0"
+relative-path = "1.7"
+path-clean = "0.1"
+
+[features]
+default = ["localfs"]
+localfs = ["tokio/fs"]
