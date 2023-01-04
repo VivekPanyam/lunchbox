@@ -18,7 +18,6 @@
 
 use async_trait::async_trait;
 use std::{
-    fs::FileType,
     future::poll_fn,
     io::Result,
     task::{Context, Poll},
@@ -649,6 +648,80 @@ impl<'a, T: ReadDirPoller<F>, F: ReadableFileSystem> ReadDir<'a, T, F> {
     }
 }
 
+/// A structure representing a type of file with accessors for each file type.
+/// It is returned by [`Metadata::file_type`] method.
+#[derive(Copy, Clone, Debug)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
+pub struct FileType {
+    is_dir: bool,
+    is_file: bool,
+    is_symlink: bool,
+}
+
+impl FileType {
+    pub fn new(is_dir: bool, is_file: bool, is_symlink: bool) -> FileType {
+        FileType {
+            is_dir,
+            is_file,
+            is_symlink,
+        }
+    }
+
+    /// Tests whether this file type represents a directory. The
+    /// result is mutually exclusive to the results of
+    /// [`is_file`] and [`is_symlink`]; only zero or one of these
+    /// tests may pass.
+    ///
+    /// [`is_file`]: FileType::is_file
+    /// [`is_symlink`]: FileType::is_symlink
+    pub fn is_dir(&self) -> bool {
+        self.is_dir
+    }
+
+    /// Tests whether this file type represents a regular file.
+    /// The result is  mutually exclusive to the results of
+    /// [`is_dir`] and [`is_symlink`]; only zero or one of these
+    /// tests may pass.
+    ///
+    /// When the goal is simply to read from (or write to) the source, the most
+    /// reliable way to test the source can be read (or written to) is to open
+    /// it.
+    ///
+    /// [`is_dir`]: FileType::is_dir
+    /// [`is_symlink`]: FileType::is_symlink
+    pub fn is_file(&self) -> bool {
+        self.is_file
+    }
+
+    /// Tests whether this file type represents a symbolic link.
+    /// The result is mutually exclusive to the results of
+    /// [`is_dir`] and [`is_file`]; only zero or one of these
+    /// tests may pass.
+    ///
+    /// The underlying [`Metadata`] struct needs to be retrieved
+    /// with the [`ReadableFileSystem::symlink_metadata`] function and not the
+    /// [`ReadableFileSystem::metadata`] function. The [`ReadableFileSystem::metadata`] function
+    /// follows symbolic links, so [`is_symlink`] would always
+    /// return `false` for the target file.
+    ///
+    /// [`is_dir`]: FileType::is_dir
+    /// [`is_file`]: FileType::is_file
+    /// [`is_symlink`]: FileType::is_symlink
+    pub fn is_symlink(&self) -> bool {
+        self.is_symlink
+    }
+}
+
+impl From<std::fs::FileType> for FileType {
+    fn from(value: std::fs::FileType) -> Self {
+        FileType {
+            is_dir: value.is_dir(),
+            is_file: value.is_file(),
+            is_symlink: value.is_symlink(),
+        }
+    }
+}
+
 /// Metadata information about a file.
 ///
 /// This structure is returned from the [`metadata`](ReadableFileSystem::metadata) or
@@ -861,7 +934,7 @@ impl From<std::fs::Metadata> for Metadata {
             metadata.accessed(),
             metadata.created(),
             metadata.modified(),
-            metadata.file_type(),
+            metadata.file_type().into(),
             metadata.len(),
             metadata.permissions().into(),
         )
