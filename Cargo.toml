@@ -19,7 +19,9 @@ async-trait = "0.1"
 thiserror = "1.0"
 relative-path = "1.7"
 path-clean = "0.1"
+serde = { version = "1.0", features = ["derive"], optional = true }
 
 [features]
 default = ["localfs"]
 localfs = ["tokio/fs", "tokio/io-util", "tokio/rt", "tokio/macros"]
+serde = ["dep:serde"]

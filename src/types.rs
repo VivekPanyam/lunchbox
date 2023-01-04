@@ -872,6 +872,7 @@ impl From<std::fs::Metadata> for Metadata {
 ///
 /// This module only currently provides one bit of information,
 /// [`Permissions::readonly`]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Debug, Clone)]
 pub struct Permissions {
     ro: bool,
@@ -929,12 +930,14 @@ impl From<std::fs::Permissions> for Permissions {
 /// on.
 ///
 /// Please note that [`OpenOptions`] are only available for [`WritableFileSystem`]s
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug)]
 pub struct OpenOptions {
     inner: OpenOptionsInner,
 }
 
 #[doc(hidden)]
+#[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 #[derive(Clone, Debug)]
 pub struct OpenOptionsInner {
     pub read: bool,
