@@ -19,6 +19,7 @@ pub mod localfs;
 pub mod path;
 pub mod types;
 
+#[cfg(feature = "localfs")]
 pub use localfs::LocalFS;
 pub use types::ReadableFileSystem;
 pub use types::WritableFileSystem;
