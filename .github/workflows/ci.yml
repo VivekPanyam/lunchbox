@@ -33,4 +33,4 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: rustup target add ${{ matrix.target }}
-      - run: cargo build --verbose --target ${{ matrix.target }}
+      - run: cargo build --verbose --target ${{ matrix.target }} --features full-wasm

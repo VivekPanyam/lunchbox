@@ -22,6 +22,11 @@ path-clean = "0.1"
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [features]
-full = ["localfs"]
+
+# All features
+full = ["localfs", "serde"]
+
+# All features that are compatible with wasm
+full-wasm = ["serde"]
 localfs = ["tokio/fs", "tokio/io-util", "tokio/rt", "tokio/macros"]
 serde = ["dep:serde"]
