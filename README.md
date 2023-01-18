@@ -10,6 +10,7 @@ High level features:
 - Support for read only filesystems and read/write filesystems
 - A built-in implementation for local filesystems
 - An async interface
+- WASM support
 
 
 # Getting started
@@ -142,3 +143,7 @@ pub trait WritableFile: ReadableFile + AsyncWrite {
 ```
 
 Note that all `WritableFile`s must be `ReadableFile`s and all `WritableFileSystem`s must be `ReadableFileSystem`s as well.
+
+## WASM
+
+For WASM builds, the `Send` and `Sync` bounds are removed from all parts of the interface.
