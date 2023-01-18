@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-//! Note this module requires the `localfs` feature (which is enabled by default)
+//! Note this module requires the `localfs` feature
 
 use async_trait::async_trait;
 use path_clean::PathClean;
