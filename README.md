@@ -39,6 +39,9 @@ let local_fs = LocalFS::new();
 // on your local filesystem
 let local_fs = LocalFS::with_base_dir("/tmp");
 ```
+
+*Note: using `LocalFS` requires the `localfs` feature*
+
 ## Step 2: Use it instead of `tokio::fs::...`
 
 Instead of

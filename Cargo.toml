@@ -22,6 +22,6 @@ path-clean = "0.1"
 serde = { version = "1.0", features = ["derive"], optional = true }
 
 [features]
-default = ["localfs"]
+full = ["localfs"]
 localfs = ["tokio/fs", "tokio/io-util", "tokio/rt", "tokio/macros"]
 serde = ["dep:serde"]
