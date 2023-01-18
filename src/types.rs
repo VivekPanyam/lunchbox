@@ -27,6 +27,24 @@ use tokio::io::{AsyncRead, AsyncWrite};
 
 use crate::path::{Path, PathBuf};
 
+if_not_wasm! {
+    /// `MaybeSend` == `Send` if not building on wasm
+    pub use Send as MaybeSend;
+
+    /// `MaybeSync` == `Sync` if not building on wasm
+    pub use Sync as MaybeSync;
+}
+
+if_wasm! {
+    /// `MaybeSend` == `Send` if not building on wasm
+    pub trait MaybeSend {}
+    impl <T> MaybeSend for T where T: ?Sized {}
+
+    /// `MaybeSync` == `Sync` if not building on wasm
+    pub trait MaybeSync {}
+    impl <T> MaybeSync for T where T: ?Sized {}
+}
+
 /// All lunchbox filesystems implement this trait.
 /// In order to be useful, `FileType` should implement
 /// [`ReadableFile`] and possibly [`WritableFile`]
@@ -35,11 +53,12 @@ pub trait HasFileType {
 }
 
 /// PathType is an alias for `AsRef<Path> + Send`
-pub trait PathType: AsRef<Path> + Send {}
-impl<T: AsRef<Path> + Send + ?Sized> PathType for T {}
+pub trait PathType: AsRef<Path> + MaybeSend {}
+impl<T: AsRef<Path> + MaybeSend + ?Sized> PathType for T {}
 
 /// A readable filesystem
-#[async_trait]
+#[cfg_attr(target_family = "wasm", async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait)]
 pub trait ReadableFileSystem: HasFileType
 where
     Self: Sized,
@@ -172,7 +191,8 @@ where
 }
 
 /// A writable filesystem
-#[async_trait]
+#[cfg_attr(target_family = "wasm", async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait)]
 pub trait WritableFileSystem: ReadableFileSystem {
     /// Equivalent to
     /// ```
@@ -367,11 +387,16 @@ pub trait WritableFileSystem: ReadableFileSystem {
     /// contents of `contents` to it.
     ///
     /// This is the async equivalent of [`std::fs::write`]
-    async fn write(&self, path: impl PathType, contents: impl AsRef<[u8]> + Send) -> Result<()>;
+    async fn write(
+        &self,
+        path: impl PathType,
+        contents: impl AsRef<[u8]> + MaybeSend,
+    ) -> Result<()>;
 }
 
 /// A readable file (that must also implement [`AsyncRead`])
-#[async_trait]
+#[cfg_attr(target_family = "wasm", async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait)]
 pub trait ReadableFile: AsyncRead
 where
     Self: Sized,
@@ -395,7 +420,8 @@ where
 
 /// A file that supports both reads and writes
 /// Must also implement [`ReadableFile`] and [`AsyncWrite`]
-#[async_trait]
+#[cfg_attr(target_family = "wasm", async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait)]
 pub trait WritableFile: ReadableFile + AsyncWrite {
     /// Equivalent to
     /// ```

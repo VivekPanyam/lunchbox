@@ -16,6 +16,7 @@ use std::pin::Pin;
 
 use async_trait::async_trait;
 
+use crate::types::MaybeSync;
 use crate::types::Metadata;
 use crate::types::PathType;
 use crate::types::ReadDir;
@@ -30,13 +31,18 @@ mod private {
     impl Sealed for super::Path {}
 }
 
+#[cfg(target_family = "wasm")]
+pub type BoxFuture<'a, T> = Pin<Box<dyn std::future::Future<Output = T> + 'a>>;
+
+#[cfg(not(target_family = "wasm"))]
 pub type BoxFuture<'a, T> = Pin<Box<dyn std::future::Future<Output = T> + Send + 'a>>;
 
 /// An extension trait that provides some methods defined on `std::path::Path` for `lunchbox::path::Path`
-#[async_trait]
+#[cfg_attr(target_family = "wasm", async_trait(?Send))]
+#[cfg_attr(not(target_family = "wasm"), async_trait)]
 pub trait LunchboxPathUtils: private::Sealed
 where
-    Self: PathType + Sync,
+    Self: PathType + MaybeSync,
 {
     /// Equivalent to
     /// ```
@@ -158,7 +164,7 @@ where
     /// assert!(!Path::new("does_not_exist.txt").exists(&fs));
     /// ```
     #[must_use]
-    async fn exists(&self, fs: &(impl ReadableFileSystem + Sync)) -> bool {
+    async fn exists(&self, fs: &(impl ReadableFileSystem + MaybeSync)) -> bool {
         fs.metadata(self).await.is_ok()
     }
 
@@ -189,7 +195,7 @@ where
     /// check errors, call [`ReadableFileSystem::metadata`] and handle its [`Result`]. Then call
     /// [`Metadata::is_file`] if it was [`Ok`].
     #[must_use]
-    async fn is_file(&self, fs: &(impl ReadableFileSystem + Sync)) -> bool {
+    async fn is_file(&self, fs: &(impl ReadableFileSystem + MaybeSync)) -> bool {
         fs.metadata(self)
             .await
             .map(|m| m.is_file())
@@ -223,7 +229,7 @@ where
     /// check errors, call [`ReadableFileSystem::metadata`] and handle its [`Result`]. Then call
     /// [`Metadata::is_dir`] if it was [`Ok`].
     #[must_use]
-    async fn is_dir(&self, fs: &(impl ReadableFileSystem + Sync)) -> bool {
+    async fn is_dir(&self, fs: &(impl ReadableFileSystem + MaybeSync)) -> bool {
         fs.metadata(self).await.map(|m| m.is_dir()).unwrap_or(false)
     }
 
@@ -258,7 +264,7 @@ where
     /// check errors, call [`ReadableFileSystem::symlink_metadata`] and handle its [`Result`]. Then call
     /// [`Metadata::is_symlink`] if it was [`Ok`].
     #[must_use]
-    async fn is_symlink(&self, fs: &(impl ReadableFileSystem + Sync)) -> bool {
+    async fn is_symlink(&self, fs: &(impl ReadableFileSystem + MaybeSync)) -> bool {
         fs.symlink_metadata(self)
             .await
             .map(|m| m.is_symlink())

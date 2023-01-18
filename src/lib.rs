@@ -14,6 +14,20 @@
 
 #![doc = include_str!(concat!(env!("OUT_DIR"), "/README_processed.md"))]
 
+macro_rules! if_wasm {
+    ($($item:item)*) => {$(
+        #[cfg(target_family = "wasm")]
+        $item
+    )*}
+}
+
+macro_rules! if_not_wasm {
+    ($($item:item)*) => {$(
+        #[cfg(not(target_family = "wasm"))]
+        $item
+    )*}
+}
+
 #[cfg(feature = "localfs")]
 pub mod localfs;
 pub mod path;
