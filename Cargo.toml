@@ -1,6 +1,6 @@
 [package]
 name = "lunchbox"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Vivek Panyam <hello@vivekpanyam.com>"]
 description = "An async virtual filesystem interface."
