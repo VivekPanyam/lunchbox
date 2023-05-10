@@ -21,6 +21,9 @@ relative-path = "1.7"
 path-clean = "0.1"
 serde = { version = "1.0", features = ["derive"], optional = true }
 
+[dev-dependencies]
+tempfile = "3.3.0"
+
 [features]
 
 # All features

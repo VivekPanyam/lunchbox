@@ -28,6 +28,7 @@ macro_rules! if_not_wasm {
     )*}
 }
 
+pub mod chroot;
 #[cfg(feature = "localfs")]
 pub mod localfs;
 pub mod path;

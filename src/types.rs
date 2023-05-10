@@ -672,6 +672,10 @@ impl<'a, T: ReadDirPoller<F>, F: ReadableFileSystem> ReadDir<'a, T, F> {
     pub async fn next_entry(&mut self) -> Result<Option<DirEntry<F>>> {
         poll_fn(|cx| self.poller.poll_next_entry(cx, self.fs)).await
     }
+
+    pub(crate) fn into_poller(self) -> T {
+        self.poller
+    }
 }
 
 /// A structure representing a type of file with accessors for each file type.
