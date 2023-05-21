@@ -33,12 +33,12 @@ use lunchbox::ReadableFileSystem;
 use lunchbox::LocalFS;
 
 // Create a lunchbox filesystem that uses the root of your local filesystem as its root
-let local_fs = LocalFS::new();
+let local_fs = LocalFS::new()?;
 
 // Create a lunchbox filesystem that uses `/tmp` as its root.
 // `/some/path` inside the filesystem would be translated to `/tmp/some/path`
 // on your local filesystem
-let local_fs = LocalFS::with_base_dir("/tmp");
+let local_fs = LocalFS::with_base_dir("/tmp").await?;
 ```
 
 *Note: using `LocalFS` requires the `localfs` feature*

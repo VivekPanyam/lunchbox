@@ -71,14 +71,16 @@ impl LocalFS {
     /// ```
     /// use lunchbox::LocalFS;
     ///
-    /// assert_eq!(LocalFS::new(), LocalFS::with_base_dir("/"));
+    /// assert_eq!(LocalFS::new(), LocalFS::with_base_dir("/").await);
     /// ```
     pub fn new() -> std::result::Result<LocalFS, Error> {
-        Self::with_base_dir("/")
+        // We don't need to check that `/` is a valid directory
+        Self::with_base_dir_unchecked("/")
     }
 
     /// Create a new LocalFS given a base directory path. The returned filesystem will operate within the specified directory.
-    /// Returns an error if the `base_dir` does not exist or is not a directory.
+    /// Returns an error if the `base_dir` does not exist or is not a directory. Use [`LocalFS::with_base_dir_unchecked`] for a
+    /// non-async version that does not do this check.
     ///
     /// ```
     /// use lunchbox::LocalFS;
@@ -86,16 +88,44 @@ impl LocalFS {
     /// // Create a lunchbox filesystem that uses `/tmp` as its root.
     /// // `/some/path` inside the filesystem would be translated to `/tmp/some/path`
     /// // on the underlying filesystem
-    /// let fs = LocalFS::with_base_dir("/tmp");
+    /// let fs = LocalFS::with_base_dir("/tmp").await?;
     /// ```
     ///
     /// Note: this should NOT be used for security purposes. It is intended for convenience.
-    pub fn with_base_dir(base_dir: impl Into<StdPathBuf>) -> std::result::Result<LocalFS, Error> {
+    pub async fn with_base_dir(
+        base_dir: impl Into<StdPathBuf>,
+    ) -> std::result::Result<LocalFS, Error> {
         let base_dir: StdPathBuf = base_dir.into();
 
-        if !base_dir.is_dir() {
+        let is_dir = tokio::fs::metadata(&base_dir)
+            .await
+            .map(|metadata| metadata.is_dir())
+            .unwrap_or(false);
+
+        if !is_dir {
             return Err(Error::InvalidBaseDir { dir: base_dir });
         }
+
+        Ok(LocalFS { base_dir })
+    }
+
+    /// Create a new LocalFS given a base directory path. The returned filesystem will operate within the specified directory.
+    /// This function DOES NOT check if `base_dir` exists.
+    ///
+    /// ```
+    /// use lunchbox::LocalFS;
+    ///
+    /// // Create a lunchbox filesystem that uses `/tmp` as its root.
+    /// // `/some/path` inside the filesystem would be translated to `/tmp/some/path`
+    /// // on the underlying filesystem
+    /// let fs = LocalFS::with_base_dir_unchecked("/tmp")?;
+    /// ```
+    ///
+    /// Note: this should NOT be used for security purposes. It is intended for convenience.
+    pub fn with_base_dir_unchecked(
+        base_dir: impl Into<StdPathBuf>,
+    ) -> std::result::Result<LocalFS, Error> {
+        let base_dir: StdPathBuf = base_dir.into();
 
         Ok(LocalFS { base_dir })
     }
@@ -383,25 +413,28 @@ mod tests {
     use crate::{LocalFS, ReadableFileSystem, WritableFileSystem};
     use std::path::Path as StdPath;
 
-    #[test]
-    fn test_base_dir() {
-        assert!(LocalFS::with_base_dir("").is_err());
-        assert!(LocalFS::with_base_dir("/mostlikelynotarealdirectory").is_err());
-        assert!(LocalFS::with_base_dir("/").is_ok());
+    #[tokio::test]
+    async fn test_base_dir() {
+        assert!(LocalFS::with_base_dir("").await.is_err());
+        assert!(LocalFS::with_base_dir("/mostlikelynotarealdirectory")
+            .await
+            .is_err());
+        assert!(LocalFS::with_base_dir("/").await.is_ok());
     }
 
-    #[test]
-    fn test_new() {
-        assert_eq!(LocalFS::new(), LocalFS::with_base_dir("/"));
+    #[tokio::test]
+    async fn test_new() {
+        assert_eq!(LocalFS::new(), LocalFS::with_base_dir("/").await);
+        assert_eq!(LocalFS::new(), LocalFS::with_base_dir_unchecked("/"));
     }
 
-    #[test]
-    fn test_conversions() {
-        let fs = LocalFS::with_base_dir("/").unwrap();
+    #[tokio::test]
+    async fn test_conversions() {
+        let fs = LocalFS::with_base_dir("/").await.unwrap();
         assert_eq!(fs.to_std_path("/a/b/c").unwrap(), StdPath::new("/a/b/c"));
         assert_eq!(fs.to_std_path("a/b/c").unwrap(), StdPath::new("/a/b/c"));
 
-        let fs = LocalFS::with_base_dir("/tmp").unwrap();
+        let fs = LocalFS::with_base_dir("/tmp").await.unwrap();
         assert_eq!(
             fs.to_std_path("/a/b/c").unwrap(),
             StdPath::new("/tmp/a/b/c")
@@ -425,7 +458,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_basic() {
-        let fs = LocalFS::with_base_dir("/tmp").unwrap();
+        let fs = LocalFS::with_base_dir("/tmp").await.unwrap();
 
         // Create a test file
         let mut file = fs.create("applesauce.txt").await.unwrap();
