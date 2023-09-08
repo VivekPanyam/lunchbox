@@ -167,6 +167,9 @@ where
     /// ```
     /// Reads a symbolic link, returning the file that the link points to.
     ///
+    /// Note: this _MUST_ return an absolute path (i.e. relative to the filesystem root)
+    /// even if the link was stored internally within the filesystem as a relative one.
+    ///
     /// This is an async version of [`std::fs::read_link`]
     async fn read_link(&self, path: impl PathType) -> Result<PathBuf>;
 
