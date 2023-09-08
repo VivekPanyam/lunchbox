@@ -253,7 +253,15 @@ impl ReadableFileSystem for LocalFS {
         // Convert to std path
         let path = self.to_std_path(path)?;
 
-        self.from_std_path(tokio::fs::read_link(path).await?)
+        let target = tokio::fs::read_link(&path).await?;
+
+        if target.is_absolute() {
+            self.from_std_path(target)
+        } else {
+            // Convert it to an absolute path
+            // Relative to the parent dir of the input path
+            self.from_std_path(path.parent().unwrap().join(target).clean())
+        }
     }
     async fn read_to_string(&self, path: impl PathType) -> Result<String> {
         // Convert to std path
